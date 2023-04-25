@@ -5,7 +5,14 @@
 #include <linux/slab.h>
 #include <linux/io.h>
 #include <linux/mailbox_client.h>
-#include <linux/pcc.h>
+
+#include <linux/kernel.h>
+#include <linux/acpi.h>
+#include <linux/completion.h>
+#include <linux/idr.h>
+#include <linux/io.h>
+
+#include <acpi/pcc.h>
 
 struct pcct_type4_data {
 	struct mbox_chan *pcc_chan;
