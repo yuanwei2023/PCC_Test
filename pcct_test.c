@@ -38,7 +38,7 @@ static int pcct_type4_proc_show(struct seq_file *m, void *v)
 
 static int pcct_type4_proc_open(struct inode *inode, struct file *file)
 {
-	return single_open(file, pcct_type4_proc_show, PDE(inode)->data);
+	return single_open(file, pcct_type4_proc_show, inode->i_private);
 }
 
 
