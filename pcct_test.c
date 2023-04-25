@@ -16,6 +16,18 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/platform_device.h>
+#include <linux/slab.h>
+#include <linux/io.h>
+#include <linux/mailbox_client.h>
+#include <linux/pcc.h>
+#include <linux/completion.h>
+#include <linux/acpi.h>
+#include <linux/seq_file.h>
+#include <linux/proc_fs.h>
 
 struct pcct_type4_data {
 	struct pcc_mbox_chan *pcc_chan;
@@ -25,49 +37,39 @@ struct pcct_type4_data {
 	struct acpi_pcc_info ctx;
 };
 
+static void pcc_rx_callback(struct mbox_client *cl, void *msg)
+{
+	// Implement the callback function for handling received messages
+}
 
 static int pcct_type4_proc_show(struct seq_file *m, void *v)
 {
-	struct pcct_type4_data *data = (struct pcct_type4_data *)m->private;
+	struct pcct_type4_data *data = m->private;
 
-	seq_printf(m, "PCC Communication Region Base Address: 0x%llx\n", (unsigned long long)data->pcc_comm_addr);
-	seq_printf(m, "PCC Communication Region Size: %zu\n", data->pcc_chan->shmem_size);
+	// You can customize this to display the content of the shared memory or any other information
+	seq_printf(m, "Shared Memory Base Address: %p\n", (void *)data->pcc_chan->shmem_base_addr);
+	seq_printf(m, "Shared Memory Size: %zu\n", data->pcc_chan->shmem_size);
 
 	return 0;
 }
 
 static int pcct_type4_proc_open(struct inode *inode, struct file *file)
 {
-	return single_open(file, pcct_type4_proc_show, inode->i_private);
+	return single_open(file, pcct_type4_proc_show, PDE_DATA(inode));
 }
 
-
-static const struct file_operations pcct_type4_proc_fops = {
-	.open		= pcct_type4_proc_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
+static const struct proc_ops pcct_type4_proc_ops = {
+	.proc_open	= pcct_type4_proc_open,
+	.proc_read	= seq_read,
+	.proc_lseek	= seq_lseek,
+	.proc_release	= single_release,
 };
-
-static struct proc_dir_entry *proc_entry;
-
-static void pcc_rx_callback(struct mbox_client *cl, void *msg)
-{
-	// Implement the callback function for handling received messages
-}
 
 static int pcct_type4_probe(struct platform_device *pdev)
 {
 	struct pcct_type4_data *data;
 	struct pcc_mbox_chan *pcc_chan;
 	uint8_t read_buffer[256];
-
-	proc_entry = proc_create_data("pcct_type4", 0, NULL, &pcct_type4_proc_fops, data);
-	if (!proc_entry) {
-		dev_err(&pdev->dev, "Failed to create proc file\n");
-		return -ENOMEM;
-	}
-
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
@@ -83,7 +85,7 @@ static int pcct_type4_probe(struct platform_device *pdev)
 		return PTR_ERR(data->pcc_chan);
 	}
 
-	pcc_chan = data->pcc_chan;
+	pcc_chan = data->pcc_chan->con_priv;
 
 	if (!pcc_chan->mchan->mbox->txdone_irq) {
 		dev_err(&pdev->dev, "This channel does not support interrupt.\n");
@@ -100,6 +102,7 @@ static int pcct_type4_probe(struct platform_device *pdev)
 
 	// Read data from shared memory
 	memcpy_fromio(read_buffer, data->pcc_comm_addr, sizeof(read_buffer));
+	dev_info(&pdev->dev, "Data read from shared memory: %*ph\n", (int)sizeof(read_buffer),
 	dev_info(&pdev->dev, "Data read from shared memory: %*ph\n", (int)sizeof(read_buffer), read_buffer);
 
 	platform_set_drvdata(pdev, data);
