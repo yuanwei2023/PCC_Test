@@ -14,9 +14,13 @@
 
 #include <acpi/pcc.h>
 
+
 struct pcct_type4_data {
-	struct mbox_chan *pcc_chan;
+	struct pcc_mbox_chan *pcc_chan;
 	void __iomem *pcc_comm_addr;
+	struct completion done;
+	struct mbox_client cl;
+	struct acpi_pcc_info ctx;
 };
 
 static void pcc_rx_callback(struct mbox_client *cl, void *msg)
@@ -27,7 +31,6 @@ static void pcc_rx_callback(struct mbox_client *cl, void *msg)
 static int pcct_type4_probe(struct platform_device *pdev)
 {
 	struct pcct_type4_data *data;
-	struct mbox_client mbox_cl;
 	struct pcc_mbox_chan *pcc_chan;
 	uint8_t read_buffer[256];
 
@@ -35,12 +38,11 @@ static int pcct_type4_probe(struct platform_device *pdev)
 	if (!data)
 		return -ENOMEM;
 
-	memset(&mbox_cl, 0, sizeof(mbox_cl));
-	mbox_cl.dev = &pdev->dev;
-	mbox_cl.rx_callback = pcc_rx_callback;
-	mbox_cl.knows_txdone = true;
+	data->cl.dev = &pdev->dev;
+	data->cl.rx_callback = pcc_rx_callback;
+	data->cl.knows_txdone = true;
 
-	data->pcc_chan = pcc_mbox_request_channel(&mbox_cl, 0); // Use the appropriate subspace_id
+	data->pcc_chan = pcc_mbox_request_channel(&data->cl, 0); // Use the appropriate subspace_id
 	if (IS_ERR(data->pcc_chan)) {
 		dev_err(&pdev->dev, "Failed to find PCC channel for subspace\n");
 		return PTR_ERR(data->pcc_chan);
@@ -58,6 +60,8 @@ static int pcct_type4_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to ioremap PCC comm region mem\n");
 		return -ENOMEM;
 	}
+
+	init_completion(&data->done);
 
 	// Read data from shared memory
 	memcpy_fromio(read_buffer, data->pcc_comm_addr, sizeof(read_buffer));
