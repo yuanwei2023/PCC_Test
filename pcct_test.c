@@ -48,7 +48,7 @@ static int pcct_type4_probe(struct platform_device *pdev)
 		return PTR_ERR(data->pcc_chan);
 	}
 
-	pcc_chan = data->pcc_chan->con_priv;
+	pcc_chan = data->pcc_chan;
 
 	if (!pcc_chan->mchan->mbox->txdone_irq) {
 		dev_err(&pdev->dev, "This channel does not support interrupt.\n");
