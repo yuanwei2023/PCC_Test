@@ -36,20 +36,20 @@ static int pcct_type4_probe(struct platform_device *pdev)
 	mbox_cl.rx_callback = pcc_rx_callback;
 	mbox_cl.knows_txdone = true;
 
-	data->pcc_chan = pcc_mbox_request_channel(&mbox_cl, 4); // Use the appropriate subspace_id
+	pcc_chan = pcc_mbox_request_channel(&mbox_cl, 4); // Use the appropriate subspace_id
 	if (IS_ERR(data->pcc_chan)) {
 		dev_err(&pdev->dev, "Failed to find PCC channel for subspace\n");
 		return PTR_ERR(data->pcc_chan);
 	}
 
-	pcc_chan = data->pcc_chan;
+	data->pcc_chan = pcc_chan;
 
 	if (!pcc_chan->mchan->mbox->txdone_irq) {
 		dev_err(&pdev->dev, "This channel does not support interrupt.\n");
 		return -EINVAL;
 	}
 
-	data->pcc_comm_addr = devm_ioremap(&pdev->dev, pcc_chan->shmem_base_addr, pcc_chan->shmem_size);
+	data->pcc_comm_addr = acpi_os_ioremap(pcc_chan->shmem_base_addr, pcc_chan->shmem_size);
 	if (!data->pcc_comm_addr) {
 		dev_err(&pdev->dev, "Failed to ioremap PCC comm region mem\n");
 		return -ENOMEM;
