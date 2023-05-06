@@ -6,6 +6,8 @@
 #include <linux/io.h>
 #include <linux/mailbox_client.h>
 #include <acpi/pcc.h>
+#include <acpi/cppc_acpi.h>
+#define pr_fmt(fmt)	"ACPI PCCT: " fmt
 
 struct pcct_type4_data {
 	struct pcc_mbox_chan *pcc_chan;
