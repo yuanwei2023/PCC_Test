@@ -1,4 +1,4 @@
-obj-m += pcct_test.o
+obj-m += pcct_test_new.o
 
 KERNEL_DIR ?= /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
