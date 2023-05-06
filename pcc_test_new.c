@@ -38,6 +38,8 @@ static int pcct_type4_probe(struct platform_device *pdev)
 	mbox_cl.rx_callback = pcc_rx_callback;
 	mbox_cl.knows_txdone = true;
 
+    pr_err("mbox_cl.knows_txdone = %d\n" , mbox_cl.knows_txdone);
+
 	pcc_chan = pcc_mbox_request_channel(&mbox_cl, 4); // Use the appropriate subspace_id
 	if (IS_ERR(data->pcc_chan)) {
 		dev_err(&pdev->dev, "Failed to find PCC channel for subspace\n");
