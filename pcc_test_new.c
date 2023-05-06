@@ -56,7 +56,7 @@ static int pcct_type4_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to ioremap PCC comm region mem\n");
 		return -ENOMEM;
 	}
-    pr_err("pcc_chan name = %s\n" , pcc_chan->name);
+    pr_err("pcc_chan name = %x\n" , data->pcc_comm_addr);
 	// Read data from shared memory
 	memcpy_fromio(read_buffer, data->pcc_comm_addr, sizeof(read_buffer));
 	dev_info(&pdev->dev, "Data read from shared memory: %*ph\n", (int)sizeof(read_buffer), read_buffer);
