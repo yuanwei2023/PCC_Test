@@ -55,9 +55,6 @@ static void cppc_check_hisi_workaround(void)
 		if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
 		    !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
 		    wa_info[i].oem_revision == tbl->oem_revision) {
-			/* Overwrite the get() callback */
-			cppc_cpufreq_driver.get = hisi_cppc_cpufreq_get_rate;
-			fie_disabled = FIE_DISABLED;
 			break;
 		}
 	}
@@ -74,7 +71,7 @@ static int pcct_type4_probe(struct platform_device *pdev)
 	uint8_t read_buffer[256];
 
     cppc_check_hisi_workaround();
-    
+
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
