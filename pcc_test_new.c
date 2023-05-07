@@ -22,6 +22,50 @@ static void pcc_rx_callback(struct mbox_client *cl, void *msg)
 	// Implement the callback function for handling received messages
 }
 
+struct cppc_workaround_oem_info {
+	char oem_id[ACPI_OEM_ID_SIZE + 1];
+	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+	u32 oem_revision;
+};
+
+static struct cppc_workaround_oem_info wa_info[] = {
+	{
+		.oem_id		= "HISI  ",
+		.oem_table_id	= "HIP07   ",
+		.oem_revision	= 0,
+	}, {
+		.oem_id		= "HISI  ",
+		.oem_table_id	= "HIP08   ",
+		.oem_revision	= 0,
+	}
+};
+
+
+static void cppc_check_hisi_workaround(void)
+{
+	struct acpi_table_header *tbl;
+	acpi_status status = AE_OK;
+	int i;
+
+	status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
+	if (ACPI_FAILURE(status) || !tbl)
+		return;
+
+	for (i = 0; i < ARRAY_SIZE(wa_info); i++) {
+		if (!memcmp(wa_info[i].oem_id, tbl->oem_id, ACPI_OEM_ID_SIZE) &&
+		    !memcmp(wa_info[i].oem_table_id, tbl->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
+		    wa_info[i].oem_revision == tbl->oem_revision) {
+			/* Overwrite the get() callback */
+			cppc_cpufreq_driver.get = hisi_cppc_cpufreq_get_rate;
+			fie_disabled = FIE_DISABLED;
+			break;
+		}
+	}
+
+	acpi_put_table(tbl);
+}
+
+
 static int pcct_type4_probe(struct platform_device *pdev)
 {
 	struct pcct_type4_data *data;
@@ -29,6 +73,8 @@ static int pcct_type4_probe(struct platform_device *pdev)
 	struct pcc_mbox_chan *pcc_chan;
 	uint8_t read_buffer[256];
 
+    cppc_check_hisi_workaround();
+    
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
