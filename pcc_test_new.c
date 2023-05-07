@@ -10,6 +10,7 @@
 #define pr_fmt(fmt)	"ACPI PCCT: " fmt
 
 #define PCC_DRIVER              "pcct_driver"
+static struct platform_device *device;
 
 struct pcct_type4_data {
 	struct pcc_mbox_chan *pcc_chan;
