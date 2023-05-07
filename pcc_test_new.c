@@ -151,7 +151,7 @@ static int __init pcct_init(void)
 static void __exit pcct_exit(void)
 {
     printk(KERN_ALERT "Demo driver exit function called\n");
-    platform_driver_unregister(&demo_driver);
+    platform_driver_unregister(&pcct_type4_driver);
 }
 
 module_init(pcct_init);
