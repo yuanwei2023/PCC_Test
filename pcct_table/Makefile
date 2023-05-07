@@ -12,12 +12,12 @@ obj-m += $(MODULE_NAME).o
 
 # all target默认执行编译
 all:
-        make -C $(KERNELDIR) M=$(PWD) modules
+	make -C $(KERNELDIR) M=$(PWD) modules
 
 # 安装模块
 install:
-        make -C $(KERNELDIR) M=$(PWD) modules_install
+	make -C $(KERNELDIR) M=$(PWD) modules_install
 
 # 清除目标文件和模块
 clean:
-        make -C $(KERNELDIR) M=$(PWD) clean
+	make -C $(KERNELDIR) M=$(PWD) clean

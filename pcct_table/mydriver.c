@@ -40,7 +40,7 @@ static void cppc_check_hisi_workaround(void)
 
         printk(KERN_ALERT "cppc_check_hisi_workaround called 111 \n");
         //status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
-        status = acpi_get_table(ACPI_SIG_IVRS, 0, &tbl);
+        status = acpi_get_table(ACPI_SIG_PCCT, 0, &tbl);
         if (ACPI_FAILURE(status) || !tbl) {
                 pr_err("acpi_get_table failed!\n");
                 return;
