@@ -43,6 +43,18 @@ static struct cppc_workaround_oem_info wa_info[] = {
 	}
 };
 
+static pcct_parse_subspace_shmem(struct pcc_chan_info *pchan, struct acpi_subtable_header *pcct_entry)
+{
+    	if(pcct_entry->type <= ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE) {
+		struct acpi_pcct_ext_pcc_master *pcct_ext =
+			(struct acpi_pcct_ext_pcc_slave *)pcct_entry;
+
+		pchan->chan.shmem_base_addr = pcct_ext->base_address;
+		pchan->chan.shmem_size = pcct_ext->length;
+		pchan->chan.latency = pcct_ext->latency;
+		pchan->chan.max_access_rate = pcct_ext->max_access_rate;
+		pchan->chan.min_turnaround_time = pcct_ext->min_turnaround_time;
+}
 
 static void cppc_check_hisi_workaround(void)
 {
