@@ -9,6 +9,8 @@
 #include <acpi/cppc_acpi.h>
 #define pr_fmt(fmt)	"ACPI PCCT: " fmt
 
+#define PCC_DRIVER              "pcct_driver"
+
 struct pcct_type4_data {
 	struct pcc_mbox_chan *pcc_chan;
 	void __iomem *pcc_comm_addr;
@@ -119,14 +121,40 @@ static int pcct_type4_remove(struct platform_device *pdev)
 }
 
 static struct platform_driver pcct_type4_driver = {
-	.probe = pcct_type4_probe,
+    .probe = pcct_type4_probe,
 	.remove = pcct_type4_remove,
 	.driver = {
-		.name = "pcct_type4",
+		.name = PCC_DRIVER,
+        .owner = THIS_MODULE,
 	},
 };
 
-module_platform_driver(pcct_type4_driver);
+static int __init pcct_init(void)
+{
+    int ret = 0;
+
+
+    printk(KERN_ALERT "Demo driver init function called\n");
+    ret = platform_driver_register(&pcct_type4_driver);
+    if (ret) {
+        printk(KERN_ALERT "Failed to register demo driver\n");
+    }
+
+   // ret = platform_device_register(&demo_device);
+    device = platform_device_register_simple(PCC_DRIVER, -1, NULL, 0);
+    printk(KERN_ALERT "Demo driver loaded successfully\n");
+    return ret;
+}
+
+
+static void __exit pcct_exit(void)
+{
+    printk(KERN_ALERT "Demo driver exit function called\n");
+    platform_driver_unregister(&demo_driver);
+}
+
+module_init(pcct_init);
+module_exit(pcct_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("PCCT Type 4 Driver");
